@@ -32,7 +32,9 @@ unchecked array access are permitted. In V1, `unsafe` is mainly a marker for
 low-level intent, not a strict safety boundary. The compiler does not yet
 enforce a safe/unsafe split. `unsafe` exists now so low-level code can be
 annotated and the syntax is reserved for future versions, which may attach
-stronger rules to it.
+stronger rules to it. Future versions may require operations such as raw
+pointer manipulation, foreign/runtime boundaries, or similar low-level code to
+appear in `unsafe` regions.
 
 ## 5. Syntax Overview
 

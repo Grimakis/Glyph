@@ -141,7 +141,7 @@ primary_expr
 
 assignable_expr
     (* assignment targets include variables, dereferences, indexed elements, and fields *)
-    = ( IDENT | "*" unary_expr ) { "[" expr "]" | "." IDENT } ;
+    = ( IDENT | "*" postfix_expr ) { "[" expr "]" | "." IDENT } ;
 
 arg_list
     = expr { "," expr } ;

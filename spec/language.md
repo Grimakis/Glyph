@@ -244,7 +244,7 @@ or expression. The result type is `u16`.
 
 ## 18. Bounds Policy
 
-V1 does **not** require runtime bounds checking on array accesses.
+V1 does **not** perform runtime bounds checking on array accesses.
 Out-of-bounds access is undefined behavior in V1. A future optional checked
 mode may add compile-time or runtime checks.
 

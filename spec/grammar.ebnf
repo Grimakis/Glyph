@@ -143,6 +143,7 @@ primary_expr
 assignable_expr
     (* assignment targets include variables, dereferences, indexed elements, and fields *)
     (* postfix operations bind tighter than dereference here, so *p[0] parses as *(p[0]) *)
+    (* semantic analysis still validates that the left-hand side denotes a writable location *)
     = ( IDENT | "*" postfix_expr ) { "[" expr "]" | "." IDENT } ;
 
 arg_list

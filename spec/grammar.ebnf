@@ -10,7 +10,7 @@ source_file
 top_level_decl
     = const_decl
     | type_decl
-    | var_decl
+    | global_var_decl
     | extern_proc_decl
     | proc_decl ;
 
@@ -19,10 +19,7 @@ top_level_decl
 (* ================================================================ *)
 
 const_decl
-    = "const" IDENT ":" [ storage_class ] type "=" expr ";" ;
-
-storage_class
-    = "rom" | "ram" | "scratch" ;
+    = "const" IDENT ":" type "=" expr ";" ;
 
 (* ================================================================ *)
 (* Type declarations                                                 *)
@@ -41,18 +38,18 @@ field_decl
 (* Module-level variables                                            *)
 (* ================================================================ *)
 
-var_decl
-    = "var" IDENT ":" [ storage_class ] type [ "=" expr ] ";" ;
+global_var_decl
+    = "var" [ "scratch" ] IDENT ":" type [ "=" expr ] ";" ;
 
 (* ================================================================ *)
 (* Procedures                                                        *)
 (* ================================================================ *)
 
 extern_proc_decl
-    = "extern" "proc" IDENT "(" [ param_list ] ")" "->" type ";" ;
+    = "extern" [ "unsafe" ] "proc" IDENT "(" [ param_list ] ")" "->" type ";" ;
 
 proc_decl
-    = "proc" IDENT "(" [ param_list ] ")" "->" type block ;
+    = [ "unsafe" ] "proc" IDENT "(" [ param_list ] ")" "->" type block ;
 
 param_list
     = param { "," param } ;
@@ -78,9 +75,9 @@ block
     = "{" { statement } "}" ;
 
 statement
-    = let_decl
-    | local_var_decl
-    | assign_or_expr_stmt
+    = local_var_decl
+    | assign_stmt
+    | expr_stmt
     | if_stmt
     | while_stmt
     | break_stmt
@@ -88,14 +85,14 @@ statement
     | return_stmt
     | unsafe_block ;
 
-let_decl
-    = "let" IDENT ":" type "=" expr ";" ;
-
 local_var_decl
     = "var" IDENT ":" type [ "=" expr ] ";" ;
 
-assign_or_expr_stmt
-    = expr [ "=" expr ] ";" ;
+assign_stmt
+    = assignable_expr "=" expr ";" ;
+
+expr_stmt
+    = expr ";" ;
 
 if_stmt
     = "if" expr block [ "else" ( if_stmt | block ) ] ;
@@ -123,7 +120,15 @@ expr
     = unary_expr { binary_op unary_expr } [ "as" type ] ;
 
 unary_expr
-    = [ unary_op ] primary_expr ;
+    = [ unary_op ] postfix_expr ;
+
+postfix_expr
+    = primary_expr { postfix_op } ;
+
+postfix_op
+    = "(" [ arg_list ] ")"              (* procedure call *)
+    | "[" expr "]"                      (* index *)
+    | "." IDENT ;                       (* field access *)
 
 primary_expr
     = INTEGER_LIT
@@ -131,11 +136,11 @@ primary_expr
     | CHAR_LIT
     | "true" | "false"
     | IDENT
-    | IDENT "(" [ arg_list ] ")"        (* procedure call *)
-    | primary_expr "[" expr "]"          (* index *)
-    | primary_expr "." IDENT             (* field access *)
     | "sizeof" "(" type ")"
     | "(" expr ")" ;
+
+assignable_expr
+    = ( IDENT | "*" unary_expr ) { "[" expr "]" | "." IDENT } ;
 
 arg_list
     = expr { "," expr } ;

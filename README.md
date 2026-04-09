@@ -10,7 +10,9 @@ files that run directly from the Model 100 menu.
 
 Glyph is struct-based and integer-first. It is **not** object-oriented, not a
 C clone, and not a Rust clone. V1 is an unsafe systems language designed for
-predictable code generation on a very constrained 8-bit platform.
+predictable code generation on a very constrained 8-bit platform. Glyph V1
+keeps bindings simple: `const` for immutable constants, `var` for mutable
+objects, and `scratch` for target-specific workspace.
 
 ## Project Goals
 

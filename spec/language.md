@@ -43,18 +43,20 @@ keyword-driven declaration style. Indentation is not significant.
 
 | Keyword       | Purpose                          |
 |---------------|----------------------------------|
-| `const`       | Compile-time constant            |
-| `var`         | Module-level mutable variable    |
+| `const`       | Immutable constant               |
+| `var`         | Writable static storage          |
 | `type`        | Type alias or struct definition  |
 | `proc`        | Procedure definition             |
 | `extern proc` | External (runtime) procedure     |
 
 ### 5.2 Local Declarations
 
-| Keyword | Purpose                             |
-|---------|-------------------------------------|
-| `let`   | Immutable local binding             |
-| `var`   | Mutable local variable              |
+| Keyword | Purpose                |
+|---------|------------------------|
+| `var`   | Local mutable variable |
+
+Immutable locals are not a distinct feature in V1. `let` is intentionally
+absent; use `var` for locals and `const` for constants.
 
 ## 6. Lexical Rules
 
@@ -72,10 +74,10 @@ keyword-driven declaration style. Indentation is not significant.
 
 ```
 as        bool      break     const     continue  else
-extern    false     i8        i16       if        let
-proc      ptr       ram       return    rom       scratch
-sizeof    struct    true      type      u8        u16
-unsafe    var       void      while
+extern    false     i8        i16       if        proc
+ptr       return    scratch   sizeof    struct    true
+type      u8        u16       unsafe    var       void
+while
 ```
 
 ## 8. Core Types
@@ -124,46 +126,51 @@ Structs are laid out in declaration order with no implicit padding (the
 compiler may add explicit padding directives in a future version). Structs
 are value types; non-trivial structs are passed by pointer in function calls.
 
-## 10. Storage Classes
+## 10. Binding and Storage Model
 
-| Class     | Meaning                                     |
-|-----------|---------------------------------------------|
-| `rom`     | Stored in the `.CO` image (read-only data)  |
-| `ram`     | Allocated in the writable data segment      |
-| `scratch` | Scratch memory (e.g., Model 100 scratch RAM)|
+Glyph V1 has two ordinary binding forms: `const` and `var`.
 
-Storage class annotations are optional and appear only on top-level `const`
-and `var` declarations. Local `let` and local `var` declarations do not take
-storage classes.
+- `const` is used for immutable constants.
+- `var` is used for mutable objects, both at top level and in local scope.
+- A top-level `var` has static storage duration.
+- A local `var` has automatic storage duration.
+- `const` is immutable and may be folded or inlined by the compiler where
+  appropriate.
+- If a `const` needs backing storage (for example because its address is
+  taken), the compiler emits immutable object data for it.
+- `scratch` is a special top-level storage qualifier for Model-100-specific
+  workspace.
+- `scratch` is the only explicit special storage qualifier in V1.
+- Glyph V1 does not expose `rom` or `ram` as source-language storage keywords.
+- Immutable locals are not a distinct feature in V1.
+- `let` is intentionally absent from V1.
 
-## 11. `const` / `let` / `var`
+## 11. Declarations
 
-- `const` — compile-time constant, usable at top level. Must have a value
-  known at compile time.
-- `let` — immutable local binding. Assigned once.
-- `var` — mutable variable. Usable at top level (module storage) or in
-  local scope.
-
-In these forms, `[storage_class]` means the storage class is optional and, when
-present, appears immediately after the colon. `[= expr]` means the initializer
-is optional.
+Glyph V1 freezes declaration syntax to the following forms:
 
 ```
-const NAME: [storage_class] TYPE = expr;
-var NAME: [storage_class] TYPE [= expr];
-
-let NAME: TYPE = expr;
+const NAME: TYPE = expr;
 var NAME: TYPE [= expr];
+var scratch NAME: TYPE [= expr];
+
+proc NAME(...) -> TYPE { ... }
+unsafe proc NAME(...) -> TYPE { ... }
+extern proc NAME(...) -> TYPE;
+extern unsafe proc NAME(...) -> TYPE;
 ```
+
+`scratch` applies only to top-level `var`. There is no storage qualifier on
+`const`, and there is no storage qualifier on local `var`.
 
 ```
 const COLUMNS: u8 = 40;
-const MSG: rom [6]u8 = "HELLO";
-var cursor_x: ram u8 = 0;
-var counter: u8;
+const MSG: [6]u8 = "HELLO";
+var cursor_x: u8 = 0;
+var scratch line_buffer: [40]u8;
 
 proc example() -> void {
-    let limit: u8 = COLUMNS;
+    var limit: u8 = COLUMNS;
     var i: u8 = 0;
     // ...
 }
@@ -181,13 +188,15 @@ proc name(param1: T1, param2: T2) -> ReturnType {
 - No variadic arguments in V1.
 - No recursion. The compiler may reject or warn on recursive call graphs.
 - `extern proc` declares a procedure supplied by the runtime or linker.
+- `unsafe proc` and `extern unsafe proc` are legal in V1. In V1, `unsafe` is
+  mainly a low-level intent marker and reserved syntax; the compiler does not
+  yet enforce a real safe/unsafe split.
 
 ## 13. Statements
 
 | Statement                 | Description                        |
 |---------------------------|------------------------------------|
-| `let x: T = expr;`       | Immutable local binding            |
-| `var x: T = expr;`       | Mutable local declaration          |
+| `var x: T [= expr];`     | Local mutable declaration          |
 | `x = expr;`              | Assignment                         |
 | `if cond { ... }`        | Conditional                        |
 | `if cond { ... } else { ... }` | Conditional with else branch |
@@ -198,6 +207,10 @@ proc name(param1: T1, param2: T2) -> ReturnType {
 | `return;`                | Return void                        |
 | `unsafe { ... }`         | Unsafe block                       |
 | `expr;`                  | Expression statement (calls, etc.) |
+
+Assignment is a distinct statement form in V1. Its left-hand side must be an
+assignable expression such as a variable, dereference, array element, or
+struct field.
 
 ## 14. Expressions
 
@@ -221,7 +234,7 @@ table will be defined when the parser is implemented.
 ## 15. Casts
 
 ```
-let wide: u16 = narrow as u16;
+var wide: u16 = narrow as u16;
 ```
 
 `as` performs explicit type conversion. Widening (u8 → u16) zero-extends.
@@ -232,7 +245,7 @@ low-level code that relies on them.
 ## 16. `sizeof`
 
 ```
-let sz: u16 = sizeof(Point);
+var sz: u16 = sizeof(Point);
 ```
 
 `sizeof` is a compile-time operator that yields the size in bytes of a type
@@ -303,7 +316,7 @@ None of these are in scope for V1.
 ## 24. Example Program
 
 ```glyph
-const MSG: rom [6]u8 = "HELLO";
+const MSG: [6]u8 = "HELLO";
 
 extern proc screen_cls() -> void;
 extern proc screen_putc(row: u8, col: u8, ch: u8, rev: bool) -> void;

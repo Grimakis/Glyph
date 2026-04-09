@@ -151,8 +151,8 @@ return.
 extern proc clock_time(buf: ptr<u8>) -> void;
 ```
 
-Write the current time as an 8-byte ASCII string (`HH:MM:SS`) into `buf`.
-The buffer must be at least 9 bytes (including null terminator).
+Write the current time as an ASCII string in `HH:MM:SS` format (8 characters
+plus a null terminator) into `buf`. The buffer must be at least 9 bytes.
 
 ### `clock_date`
 
@@ -160,8 +160,8 @@ The buffer must be at least 9 bytes (including null terminator).
 extern proc clock_date(buf: ptr<u8>) -> void;
 ```
 
-Write the current date as an 8-byte ASCII string (`MM/DD/YY`) into `buf`.
-The buffer must be at least 9 bytes (including null terminator).
+Write the current date as an ASCII string in `MM/DD/YY` format (8 characters
+plus a null terminator) into `buf`. The buffer must be at least 9 bytes.
 
 ### `clock_day`
 

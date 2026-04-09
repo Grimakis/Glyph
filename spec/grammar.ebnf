@@ -120,8 +120,7 @@ unsafe_block
 (* ================================================================ *)
 
 expr
-    = unary_expr { binary_op unary_expr }
-    | expr "as" type ;
+    = unary_expr { binary_op unary_expr } [ "as" type ] ;
 
 unary_expr
     = [ unary_op ] primary_expr ;

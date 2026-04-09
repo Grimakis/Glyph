@@ -56,7 +56,8 @@ keyword-driven declaration style. Indentation is not significant.
 | `var`   | Local mutable variable |
 
 Immutable locals are not a distinct feature in V1. `let` is intentionally
-absent; use `var` for locals and `const` for constants.
+absent; use `var` for locals and `const` for constants. `var` is the only
+local declaration keyword in V1.
 
 ## 6. Lexical Rules
 

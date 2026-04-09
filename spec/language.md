@@ -144,6 +144,10 @@ storage classes.
 - `var` — mutable variable. Usable at top level (module storage) or in
   local scope.
 
+In these forms, `[storage_class]` means the storage class is optional and, when
+present, appears immediately after the colon. `[= expr]` means the initializer
+is optional.
+
 ```
 const NAME: [storage_class] TYPE = expr;
 var NAME: [storage_class] TYPE [= expr];
@@ -152,12 +156,11 @@ let NAME: TYPE = expr;
 var NAME: TYPE [= expr];
 ```
 
-In these forms, `[storage_class]` means the storage class is optional and, when
-present, appears immediately after the colon.
-
 ```
 const COLUMNS: u8 = 40;
+const MSG: rom [6]u8 = "HELLO";
 var cursor_x: ram u8 = 0;
+var counter: u8;
 
 proc example() -> void {
     let limit: u8 = COLUMNS;

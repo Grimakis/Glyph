@@ -1,0 +1,21 @@
+// hello.glyph — minimal Glyph example for the TRS-80 Model 100
+
+const MSG: rom [6]u8 = "HELLO";
+
+extern proc screen_cls() -> void;
+extern proc screen_putc(row: u8, col: u8, ch: u8, rev: bool) -> void;
+extern proc key_get_blocking() -> u8;
+
+proc print_text(row: u8, col: u8, text: ptr<u8>) -> void {
+    var i: u8 = 0;
+    while text[i] != 0 {
+        screen_putc(row, col + i, text[i], false);
+        i = i + 1;
+    }
+}
+
+proc main() -> void {
+    screen_cls();
+    print_text(1, 1, &MSG[0]);
+    key_get_blocking();
+}

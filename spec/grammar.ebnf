@@ -1,0 +1,191 @@
+(* Glyph V1 Grammar — EBNF Draft *)
+
+(* ================================================================ *)
+(* Source file                                                       *)
+(* ================================================================ *)
+
+source_file
+    = { top_level_decl } ;
+
+top_level_decl
+    = const_decl
+    | type_decl
+    | var_decl
+    | extern_proc_decl
+    | proc_decl ;
+
+(* ================================================================ *)
+(* Constants                                                         *)
+(* ================================================================ *)
+
+const_decl
+    = "const" IDENT ":" [ storage_class ] type "=" expr ";" ;
+
+storage_class
+    = "rom" | "ram" | "scratch" ;
+
+(* ================================================================ *)
+(* Type declarations                                                 *)
+(* ================================================================ *)
+
+type_decl
+    = "type" IDENT "struct" "{" field_list "}" ;
+
+field_list
+    = field { "," field } [ "," ] ;
+
+field
+    = IDENT ":" type ;
+
+(* ================================================================ *)
+(* Module-level variables                                            *)
+(* ================================================================ *)
+
+var_decl
+    = "var" IDENT ":" [ storage_class ] type [ "=" expr ] ";" ;
+
+(* ================================================================ *)
+(* Procedures                                                        *)
+(* ================================================================ *)
+
+extern_proc_decl
+    = "extern" "proc" IDENT "(" [ param_list ] ")" "->" type ";" ;
+
+proc_decl
+    = "proc" IDENT "(" [ param_list ] ")" "->" type block ;
+
+param_list
+    = param { "," param } ;
+
+param
+    = IDENT ":" type ;
+
+(* ================================================================ *)
+(* Types                                                             *)
+(* ================================================================ *)
+
+type
+    = "u8" | "i8" | "u16" | "i16" | "bool" | "void"
+    | "ptr" "<" type ">"
+    | "[" INTEGER_LIT "]" type
+    | IDENT ;
+
+(* ================================================================ *)
+(* Blocks and statements                                             *)
+(* ================================================================ *)
+
+block
+    = "{" { statement } "}" ;
+
+statement
+    = let_decl
+    | local_var_decl
+    | assign_or_expr_stmt
+    | if_stmt
+    | while_stmt
+    | break_stmt
+    | continue_stmt
+    | return_stmt
+    | unsafe_block ;
+
+let_decl
+    = "let" IDENT ":" type "=" expr ";" ;
+
+local_var_decl
+    = "var" IDENT ":" type [ "=" expr ] ";" ;
+
+assign_or_expr_stmt
+    = expr [ "=" expr ] ";" ;
+
+if_stmt
+    = "if" expr block [ "else" ( if_stmt | block ) ] ;
+
+while_stmt
+    = "while" expr block ;
+
+break_stmt
+    = "break" ";" ;
+
+continue_stmt
+    = "continue" ";" ;
+
+return_stmt
+    = "return" [ expr ] ";" ;
+
+unsafe_block
+    = "unsafe" block ;
+
+(* ================================================================ *)
+(* Expressions (simplified — not full precedence grammar)            *)
+(* ================================================================ *)
+
+expr
+    = unary_expr { binary_op unary_expr } [ "as" type ] ;
+
+unary_expr
+    = [ unary_op ] primary_expr ;
+
+primary_expr
+    = INTEGER_LIT
+    | STRING_LIT
+    | CHAR_LIT
+    | "true" | "false"
+    | IDENT
+    | IDENT "(" [ arg_list ] ")"        (* procedure call *)
+    | primary_expr "[" expr "]"          (* index *)
+    | primary_expr "." IDENT             (* field access *)
+    | "sizeof" "(" type ")"
+    | "(" expr ")" ;
+
+arg_list
+    = expr { "," expr } ;
+
+unary_op
+    = "-" | "!" | "~" | "&" | "*" ;
+
+binary_op
+    = "+" | "-" | "*" | "/" | "%"
+    | "&" | "|" | "^" | "<<" | ">>"
+    | "==" | "!=" | "<" | ">" | "<=" | ">="
+    | "&&" | "||" ;
+
+(* ================================================================ *)
+(* Terminals                                                         *)
+(* ================================================================ *)
+
+IDENT
+    = letter { letter | digit | "_" } ;
+
+INTEGER_LIT
+    = decimal_lit | hex_lit | binary_lit ;
+
+decimal_lit
+    = digit { digit } ;
+
+hex_lit
+    = "0x" hex_digit { hex_digit } ;
+
+binary_lit
+    = "0b" ( "0" | "1" ) { "0" | "1" } ;
+
+STRING_LIT
+    = '"' { string_char } '"' ;
+
+CHAR_LIT
+    = "'" string_char "'" ;
+
+letter
+    = "a".."z" | "A".."Z" | "_" ;
+
+digit
+    = "0".."9" ;
+
+hex_digit
+    = digit | "a".."f" | "A".."F" ;
+
+string_char
+    = (* any printable ASCII except unescaped quote *)
+    | escape_seq ;
+
+escape_seq
+    = "\\" ( "n" | "r" | "t" | "\\" | "0" | '"' | "'" ) ;

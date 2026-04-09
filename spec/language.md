@@ -13,7 +13,7 @@ dynamic dispatch. There are no generics or traits in V1.
 
 - Readable, minimal syntax for 8-bit systems programming.
 - Predictable mapping from source to 8085 assembly.
-- Small compiler suitable for self-hosting on constrained machines.
+- Small compiler with a long-term path toward self-hosting.
 - Thin runtime using documented Model 100 ROM routines.
 
 ## 3. Non-Goals (V1)
@@ -28,10 +28,11 @@ dynamic dispatch. There are no generics or traits in V1.
 ## 4. Safety Stance
 
 Glyph V1 is an **unsafe systems language**. Raw pointer arithmetic and
-unchecked array access are permitted. An `unsafe` block syntax exists to mark
-sections that perform raw memory operations, but V1 does not enforce
-additional safety rules outside those blocks. Safety machinery may be
-introduced in future versions.
+unchecked array access are permitted. In V1, `unsafe` is mainly a marker for
+low-level intent, not a strict safety boundary. The compiler does not yet
+enforce a safe/unsafe split. `unsafe` exists now so low-level code can be
+annotated and the syntax is reserved for future versions, which may attach
+stronger rules to it.
 
 ## 5. Syntax Overview
 
@@ -114,8 +115,8 @@ pointers are the programmer's responsibility to avoid.
 
 ```
 type Point struct {
-    x: i16,
-    y: i16,
+    x: i16;
+    y: i16;
 }
 ```
 
@@ -131,7 +132,9 @@ are value types; non-trivial structs are passed by pointer in function calls.
 | `ram`     | Allocated in the writable data segment      |
 | `scratch` | Scratch memory (e.g., Model 100 scratch RAM)|
 
-Storage class annotations appear on top-level `const` and `var` declarations.
+Storage class annotations appear only on top-level `const` and `var`
+declarations. Local `let` and local `var` declarations do not take storage
+classes.
 
 ## 11. `const` / `let` / `var`
 
@@ -142,8 +145,16 @@ Storage class annotations appear on top-level `const` and `var` declarations.
   local scope.
 
 ```
+const NAME: [storage_class] TYPE = expr;
+var NAME: [storage_class] TYPE [= expr];
+
+let NAME: TYPE = expr;
+var NAME: TYPE [= expr];
+```
+
+```
 const COLUMNS: u8 = 40;
-var cursor_x: u8 = 0;
+var cursor_x: ram u8 = 0;
 
 proc example() -> void {
     let limit: u8 = COLUMNS;
@@ -209,7 +220,8 @@ let wide: u16 = narrow as u16;
 
 `as` performs explicit type conversion. Widening (u8 → u16) zero-extends.
 Narrowing (u16 → u8) truncates. Signed/unsigned reinterpretation is allowed.
-Pointer casts are permitted inside `unsafe` blocks.
+Pointer casts are permitted in V1; `unsafe` blocks may be used to mark
+low-level code that relies on them.
 
 ## 16. `sizeof`
 
@@ -229,9 +241,9 @@ or expression. The result type is `u16`.
 
 ## 18. Bounds Policy
 
-V1 does **not** perform runtime bounds checking on array accesses. Out-of-bounds
-access is undefined. Future versions may add optional compile-time or
-runtime checks.
+V1 does **not** require runtime bounds checking on array accesses.
+Out-of-bounds access is undefined behavior in V1. A future optional checked
+mode may add compile-time or runtime checks.
 
 ## 19. Integer Semantics
 

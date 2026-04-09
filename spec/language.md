@@ -132,9 +132,9 @@ are value types; non-trivial structs are passed by pointer in function calls.
 | `ram`     | Allocated in the writable data segment      |
 | `scratch` | Scratch memory (e.g., Model 100 scratch RAM)|
 
-Storage class annotations appear only on top-level `const` and `var`
-declarations. Local `let` and local `var` declarations do not take storage
-classes.
+Storage class annotations are optional and appear only on top-level `const`
+and `var` declarations. Local `let` and local `var` declarations do not take
+storage classes.
 
 ## 11. `const` / `let` / `var`
 
@@ -151,6 +151,9 @@ var NAME: [storage_class] TYPE [= expr];
 let NAME: TYPE = expr;
 var NAME: TYPE [= expr];
 ```
+
+In these forms, `[storage_class]` means the storage class is optional and, when
+present, appears immediately after the colon.
 
 ```
 const COLUMNS: u8 = 40;

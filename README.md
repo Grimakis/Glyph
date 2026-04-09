@@ -15,7 +15,8 @@ predictable code generation on a very constrained 8-bit platform.
 ## Project Goals
 
 - Provide a readable, minimal language for Model 100 development.
-- Generate tight 8085 assembly from a small self-hosted-capable compiler.
+- Generate tight 8085 assembly from a small compiler with a long-term path
+  toward self-hosting.
 - Use documented ROM routines through a thin platform runtime layer.
 - Keep the entire toolchain understandable by a single developer.
 

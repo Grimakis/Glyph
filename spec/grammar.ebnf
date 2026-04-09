@@ -32,10 +32,10 @@ type_decl
     = "type" IDENT "struct" "{" field_list "}" ;
 
 field_list
-    = field { "," field } [ "," ] ;
+    = { field_decl } ;
 
-field
-    = IDENT ":" type ;
+field_decl
+    = IDENT ":" type ";" ;
 
 (* ================================================================ *)
 (* Module-level variables                                            *)
